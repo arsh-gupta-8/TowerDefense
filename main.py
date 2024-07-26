@@ -8,32 +8,34 @@ font = pygame.font.SysFont('Comic Sans MS', 30)
 
 # Screen
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-pygame.display.set_caption("Cookie Clicker")
+pygame.display.set_caption("Tower Defense")
 WIDTH = pygame.display.get_surface().get_width()
 HEIGHT = pygame.display.get_surface().get_height()
-print(WIDTH, HEIGHT)
+w_ratio = WIDTH//16
+h_ratio = HEIGHT//9
+
+# Colours
+GRASS = (199, 234, 70)
+PATH = (211, 182, 131)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 # Loop Start
 clock = pygame.time.Clock()
 running = True
-FPS = 30
+FPS = 60
+
+# Enemy Path
+pathway = []
+pathway.append(pygame.Rect(0, h_ratio * 7, w_ratio * 11, h_ratio))
+pathway.append(pygame.Rect(w_ratio * 10, h_ratio * 4, w_ratio, h_ratio*3))
+pathway.append(pygame.Rect(w_ratio * 2, h_ratio * 4, w_ratio * 8, h_ratio))
+pathway.append(pygame.Rect(w_ratio * 2, h_ratio * 2, w_ratio, h_ratio * 2))
+pathway.append(pygame.Rect(w_ratio * 2, h_ratio, w_ratio * 12, h_ratio))
+pathway.append(pygame.Rect(w_ratio * 13, h_ratio, w_ratio, h_ratio * 13))
 
 # Game Setting
-cookies = 0
-enlarge = False
-shop_scroll = 0
-
-
-def get_placement_hover(mouse_x, mouse_y):
-    x_box_cord = 0
-    y_box_cord = 0
-    while mouse_x > 0:
-        x_box_cord += 1
-        mouse_x -= 80
-    while mouse_y > 0:
-        y_box_cord += 1
-        mouse_y -= 80
-    return x_box_cord, y_box_cord
+placement = False
 
 
 def hex_to_rgb(hex_string):
@@ -42,15 +44,6 @@ def hex_to_rgb(hex_string):
     for i in range(0, 6, 2):
         rgb.append(int(hex_string[i:i+2], 16))
     return tuple(rgb)
-
-
-def write(text):
-    write_line = font.render("Cookies: " + str(text), False, (0, 0, 0))
-    screen.blit(write_line, (0, 0))
-
-
-def show_buttons(shop_scroll):
-    pass
 
 
 while running:
@@ -65,39 +58,27 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-
             elif event.key == pygame.K_1:
-                unplaced = True
-                while unplaced:
-                    x, y = pygame.mouse.get_pos()
-                    tower_x_hover, tower_y_hover = get_placement_hover(x, y)
-                    pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(tower_x_hover*80, tower_y_hover*80, 80, 80))
-                    if event.key == pygame.K_SPACE:
-                        unplaced = False
-                    pygame.display.update()
+                if placement:
+                    placement = False
+                else:
+                    placement = True
 
-        # if event.type == pygame.MOUSEBUTTONUP:
-        #     if event.button == 1 and 75 <= x <= 325 and 90 <= y <= 340:
-        #         cookies += 1
-        #
-        #     elif 480 <= x <= 820:
-        #         if event.button == 4 and shop_scroll < 0:
-        #             shop_scroll += 45
-        #
-        #         elif event.button == 5:
-        #             shop_scroll -= 45
+    screen.fill(GRASS)
 
-    x_cord_square = 0
-    y_cord_square = 0
-    screen.fill(hex_to_rgb("#C7EA46"))
-    for square_height in range(HEIGHT//80):
-        for square_width in range(WIDTH//80):
-            pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x_cord_square, y_cord_square, 80, 80), 1)
-            x_cord_square += 80
+    for path in pathway:
+        pygame.draw.rect(screen, PATH, path)
+
+    if placement:
         x_cord_square = 0
-        y_cord_square += 80
-    write(cookies)
-    show_buttons(shop_scroll)
+        y_cord_square = 0
+        for square_height in range(9):
+            for square_width in range(16):
+                pygame.draw.rect(screen, BLACK, pygame.Rect(x_cord_square, y_cord_square, w_ratio, h_ratio), 1)
+                x_cord_square += w_ratio
+            x_cord_square = 0
+            y_cord_square += h_ratio
+
     pygame.display.update()
     clock.tick(FPS)
 
