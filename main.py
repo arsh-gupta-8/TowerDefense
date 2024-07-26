@@ -80,7 +80,7 @@ while running:
         tower_x = w_ratio * (x // w_ratio) + w_ratio * 0.2
         tower_y = h_ratio * (y // h_ratio) + h_ratio * 0.2
         tower_cord = [tower_x, tower_y, w_ratio * 0.6, h_ratio * 0.6]
-        if screen.get_at((x, y)) == PATH or [tower_x, tower_y] in tower_cords:
+        if screen.get_at((x, y)) == PATH or tower_cord in tower_cords:
             can_place = False
             pygame.draw.rect(surface, (255, 0, 0, 80), [0, 0, WIDTH, HEIGHT])
         else:
