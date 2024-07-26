@@ -8,9 +8,10 @@ font = pygame.font.SysFont('Comic Sans MS', 30)
 
 # Screen
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-pygame.display.set_caption("Tower Defense")
 WIDTH = pygame.display.get_surface().get_width()
 HEIGHT = pygame.display.get_surface().get_height()
+surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+pygame.display.set_caption("Tower Defense")
 w_ratio = WIDTH//16
 h_ratio = HEIGHT//9
 
@@ -36,14 +37,8 @@ pathway.append(pygame.Rect(w_ratio * 13, h_ratio, w_ratio, h_ratio * 13))
 
 # Game Setting
 placement = False
-
-
-def hex_to_rgb(hex_string):
-    hex_string = hex_string[1:]
-    rgb = []
-    for i in range(0, 6, 2):
-        rgb.append(int(hex_string[i:i+2], 16))
-    return tuple(rgb)
+can_place = False
+tower_cords = []
 
 
 while running:
@@ -64,20 +59,35 @@ while running:
                 else:
                     placement = True
 
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if placement and can_place:
+                tower_cords.append(tower_cord)
+                placement = False
+
     screen.fill(GRASS)
 
     for path in pathway:
         pygame.draw.rect(screen, PATH, path)
 
+    for tower in tower_cords:
+        pygame.draw.rect(screen, (0, 0, 139), tower)
+
     if placement:
-        x_cord_square = 0
-        y_cord_square = 0
         for square_height in range(9):
             for square_width in range(16):
-                pygame.draw.rect(screen, BLACK, pygame.Rect(x_cord_square, y_cord_square, w_ratio, h_ratio), 1)
-                x_cord_square += w_ratio
-            x_cord_square = 0
-            y_cord_square += h_ratio
+                pygame.draw.rect(screen, BLACK, pygame.Rect(w_ratio * square_width, h_ratio * square_height, w_ratio, h_ratio), 1)
+
+        tower_x = w_ratio * (x // w_ratio) + w_ratio * 0.2
+        tower_y = h_ratio * (y // h_ratio) + h_ratio * 0.2
+        tower_cord = [tower_x, tower_y, w_ratio * 0.6, h_ratio * 0.6]
+        if screen.get_at((x, y)) == PATH or [tower_x, tower_y] in tower_cords:
+            can_place = False
+            pygame.draw.rect(surface, (255, 0, 0, 80), [0, 0, WIDTH, HEIGHT])
+        else:
+            can_place = True
+            pygame.draw.rect(surface, (0, 255, 0, 80), [0, 0, WIDTH, HEIGHT])
+        pygame.draw.rect(surface, (0, 0, 139, 120), tower_cord)
+        screen.blit(surface, (0, 0))
 
     pygame.display.update()
     clock.tick(FPS)
