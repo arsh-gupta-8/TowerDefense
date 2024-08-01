@@ -39,6 +39,40 @@ pathway.append(pygame.Rect(w_ratio * 13, h_ratio, w_ratio, h_ratio * 13))
 placement = False
 can_place = False
 tower_cords = []
+wave_enemies = [[[5, 1]], [[10, 1], [5, 2]]]
+
+
+class Enemy:
+    def __init__(self, xp, yp, path_num):
+        self.xp = xp
+        self.yp = yp
+        self.path_num = path_num
+
+    def change_pos(self):
+        if self.path_num == 1:
+            if self.xp > w_ratio * 10 + w_ratio * 0.20:
+                self.path_num = 2
+        elif self.path_num == 2:
+            if self.yp < h_ratio * 4 - h_ratio * 0.20:
+                self.path_num = 3
+        elif self.path_num == 3:
+            if self.xp < w_ratio * 3 - w_ratio * 0.20:
+                self.path_num = 4
+        elif self.path_num == 4:
+            if self.yp < h_ratio - h_ratio * 0.20:
+                self.path_num = 5
+        elif self.path_num == 5:
+            if self.xp < w_ratio * 13 + w_ratio * 0.20:
+                self.path_num = 6
+
+        if self.path_num == 1 or self.path_num == 5:
+            self.xp += 5
+        elif self.path_num == 2 or self.path_num == 4:
+            self.yp += 5
+        elif self.path_num == 3:
+            self.xp -= 5
+        else:
+            self.yp -= 5
 
 
 while running:
@@ -73,10 +107,6 @@ while running:
         pygame.draw.rect(screen, (0, 0, 139), tower)
 
     if placement:
-        for square_height in range(9):
-            for square_width in range(16):
-                pygame.draw.rect(screen, BLACK, pygame.Rect(w_ratio * square_width, h_ratio * square_height, w_ratio, h_ratio), 1)
-
         tower_x = w_ratio * (x // w_ratio) + w_ratio * 0.2
         tower_y = h_ratio * (y // h_ratio) + h_ratio * 0.2
         tower_cord = [tower_x, tower_y, w_ratio * 0.6, h_ratio * 0.6]
