@@ -40,39 +40,48 @@ placement = False
 can_place = False
 tower_cords = []
 wave_enemies = [[[5, 1]], [[10, 1], [5, 2]]]
-
+enemies_list = []
+wave = 0
+wave_end = True
 
 class Enemy:
-    def __init__(self, xp, yp, path_num):
-        self.xp = xp
-        self.yp = yp
-        self.path_num = path_num
+    def __init__(self, health):
+        self.xp = w_ratio * -1
+        self.yp = h_ratio * 7 + h_ratio * 0.2
+        self.path_num = 1
+        self.speed = 5
+        self.health = health
 
     def change_pos(self):
         if self.path_num == 1:
             if self.xp > w_ratio * 10 + w_ratio * 0.20:
+                self.xp = w_ratio * 10 + w_ratio * 0.20
                 self.path_num = 2
         elif self.path_num == 2:
-            if self.yp < h_ratio * 4 - h_ratio * 0.20:
+            if self.yp < h_ratio * 4 + h_ratio * 0.20:
+                self.yp = h_ratio * 4 + h_ratio * 0.20
                 self.path_num = 3
         elif self.path_num == 3:
-            if self.xp < w_ratio * 3 - w_ratio * 0.20:
+            if self.xp < w_ratio * 2 + w_ratio * 0.20:
+                self.xp = w_ratio * 2 + w_ratio * 0.20
                 self.path_num = 4
         elif self.path_num == 4:
-            if self.yp < h_ratio - h_ratio * 0.20:
+            if self.yp < h_ratio + h_ratio * 0.20:
+                self.yp = h_ratio + h_ratio * 0.20
                 self.path_num = 5
         elif self.path_num == 5:
-            if self.xp < w_ratio * 13 + w_ratio * 0.20:
+            if self.xp > w_ratio * 13 + w_ratio * 0.20:
+                self.xp = w_ratio * 13 + w_ratio * 0.20
                 self.path_num = 6
 
         if self.path_num == 1 or self.path_num == 5:
-            self.xp += 5
+            self.xp += self.speed
         elif self.path_num == 2 or self.path_num == 4:
-            self.yp += 5
+            self.yp -= self.speed
         elif self.path_num == 3:
-            self.xp -= 5
+            self.xp -= self.speed
         else:
-            self.yp -= 5
+            self.yp += self.speed
 
 
 while running:
@@ -118,6 +127,23 @@ while running:
             pygame.draw.rect(surface, (0, 255, 0, 80), [0, 0, WIDTH, HEIGHT])
         pygame.draw.rect(surface, (0, 0, 139, 120), tower_cord)
         screen.blit(surface, (0, 0))
+
+    if wave_end:
+        wave_end = False
+        for i in range(len(wave_enemies[wave])):
+            for j in range(wave_enemies[wave][i][0]):
+                enemies_list.append(Enemy(wave_enemies[wave][i][1]))
+        enemy_total = len(enemies_list)
+        enemy_now = 0
+        spawn_timer = 0
+    else:
+        spawn_timer += 1
+        if enemy_now < enemy_total:
+            if spawn_timer % 30 == 1:
+                enemy_now += 1
+        for i in range(enemy_now):
+            enemies_list[i].change_pos()
+            pygame.draw.rect(screen, BLACK, [enemies_list[i].xp, enemies_list[i].yp, w_ratio * 0.6, h_ratio * 0.6])
 
     pygame.display.update()
     clock.tick(FPS)
