@@ -20,6 +20,7 @@ GRASS = (199, 234, 70)
 PATH = (211, 182, 131)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+ENEMY_COLOURS = [PATH, (255, 0, 0), (0, 0, 255), (0, 255, 0), (255, 255, 0), (254, 127, 154)]
 
 # Loop Start
 clock = pygame.time.Clock()
@@ -39,18 +40,20 @@ pathway.append(pygame.Rect(w_ratio * 13, h_ratio, w_ratio, h_ratio * 13))
 placement = False
 can_place = False
 tower_cords = []
-wave_enemies = [[[5, 1]], [[10, 1], [5, 2]]]
+wave_enemies = [[[5, 1]], [[5, 2]], [[5, 3]], [[5, 4]], [[5, 5]]]
 enemies_list = []
 wave = 0
 wave_end = True
+dead = 0
 
 class Enemy:
     def __init__(self, health):
         self.xp = w_ratio * -1
         self.yp = h_ratio * 7 + h_ratio * 0.2
         self.path_num = 1
-        self.speed = 5
+        self.speed = 30
         self.health = health
+        self.colour = PATH
 
     def change_pos(self):
         if self.path_num == 1:
@@ -83,6 +86,8 @@ class Enemy:
         else:
             self.yp += self.speed
 
+    def change_col(self):
+        self.colour = ENEMY_COLOURS[self.health]
 
 while running:
 
@@ -135,15 +140,41 @@ while running:
                 enemies_list.append(Enemy(wave_enemies[wave][i][1]))
         enemy_total = len(enemies_list)
         enemy_now = 0
+        spawned = 0
         spawn_timer = 0
+        dead = 0
+        print(enemy_total)
     else:
+        remove_list = []
         spawn_timer += 1
-        if enemy_now < enemy_total:
+        if enemy_now < enemy_total and spawned != enemy_total:
             if spawn_timer % 30 == 1:
                 enemy_now += 1
+                spawned += 1
+
+                print(enemy_now, enemy_total, spawned, dead)
+
+        enemy_now -= dead
+        dead = 0
+
         for i in range(enemy_now):
+
             enemies_list[i].change_pos()
-            pygame.draw.rect(screen, BLACK, [enemies_list[i].xp, enemies_list[i].yp, w_ratio * 0.6, h_ratio * 0.6])
+            enemies_list[i].change_col()
+            pygame.draw.rect(screen, enemies_list[i].colour, [enemies_list[i].xp, enemies_list[i].yp, w_ratio * 0.6, h_ratio * 0.6])
+
+            if enemies_list[i].health == 0 or enemies_list[i].yp > HEIGHT:
+                remove_list.append(i)
+                dead += 1
+
+        remove_list[::-1]
+
+        for num in remove_list:
+            enemies_list.pop(num)
+
+        if len(enemies_list) == 0:
+            wave_end = True
+            wave += 1
 
     pygame.display.update()
     clock.tick(FPS)
