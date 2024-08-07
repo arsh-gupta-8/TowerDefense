@@ -14,6 +14,8 @@ surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 pygame.display.set_caption("Tower Defense")
 w_ratio = WIDTH//16
 h_ratio = HEIGHT//9
+w_ratio_center = w_ratio * 0.2
+h_ratio_center = h_ratio * 0.2
 
 # Colours
 GRASS = (199, 234, 70)
@@ -43,6 +45,7 @@ tower_cords = []
 tower_bullets = []
 wave_enemies = [[[5, 1]], [[5, 2]], [[5, 3]], [[5, 4]], [[5, 5]]]
 enemies_list = []
+enemy_now = 0
 wave = 0
 wave_end = True
 dead = 0
@@ -50,7 +53,7 @@ dead = 0
 class Enemy:
     def __init__(self, health):
         self.xp = w_ratio * -1
-        self.yp = h_ratio * 7 + h_ratio * 0.2
+        self.yp = h_ratio * 7 + h_ratio_center
         self.path_num = 1
         self.speed = 5
         self.health = health
@@ -58,24 +61,24 @@ class Enemy:
 
     def change_pos(self):
         if self.path_num == 1:
-            if self.xp > w_ratio * 10 + w_ratio * 0.20:
-                self.xp = w_ratio * 10 + w_ratio * 0.20
+            if self.xp > w_ratio * 10 + w_ratio_center:
+                self.xp = w_ratio * 10 + w_ratio_center
                 self.path_num = 2
         elif self.path_num == 2:
-            if self.yp < h_ratio * 4 + h_ratio * 0.20:
-                self.yp = h_ratio * 4 + h_ratio * 0.20
+            if self.yp < h_ratio * 4 + h_ratio_center:
+                self.yp = h_ratio * 4 + h_ratio_center
                 self.path_num = 3
         elif self.path_num == 3:
-            if self.xp < w_ratio * 2 + w_ratio * 0.20:
-                self.xp = w_ratio * 2 + w_ratio * 0.20
+            if self.xp < w_ratio * 2 + w_ratio_center:
+                self.xp = w_ratio * 2 + w_ratio_center
                 self.path_num = 4
         elif self.path_num == 4:
-            if self.yp < h_ratio + h_ratio * 0.20:
-                self.yp = h_ratio + h_ratio * 0.20
+            if self.yp < h_ratio + h_ratio_center:
+                self.yp = h_ratio + h_ratio_center
                 self.path_num = 5
         elif self.path_num == 5:
-            if self.xp > w_ratio * 13 + w_ratio * 0.20:
-                self.xp = w_ratio * 13 + w_ratio * 0.20
+            if self.xp > w_ratio * 13 + w_ratio_center:
+                self.xp = w_ratio * 13 + w_ratio_center
                 self.path_num = 6
 
         if self.path_num == 1 or self.path_num == 5:
@@ -97,27 +100,29 @@ class Bullet:
         self.ybp = -20
         self.x_change = 0
         self.y_change = 0
-        self.bullet_speed = 10
+        self.bullet_speed = 30
 
     def calculate_change(self, enemy_x, enemy_y):
-        x_scale = enemy_x - self.xbp
-        y_scale = enemy_y - self.ybp
+        x_scale = enemy_x - self.xbp + w_ratio_center
+        y_scale = enemy_y - self.ybp + h_ratio_center
         neg_x = 1
         neg_y = 1
         if x_scale < 0:
             neg_x = -1
         if y_scale < 0:
             neg_y = -1
-        if abs(x_scale) <= abs(y_scale):
+        x_scale = abs(x_scale)
+        y_scale = abs(y_scale)
+        if x_scale <= y_scale:
             self.x_change = (x_scale / y_scale) * self.bullet_speed * neg_x
             self.y_change = self.bullet_speed * neg_y
         else:
             self.x_change = self.bullet_speed * neg_x
-            self.y_change = (y_scale/x_scale) * self.bullet_speed * neg_y
+            self.y_change = (y_scale / x_scale) * self.bullet_speed * neg_y
 
     def bullet_move(self):
         self.xbp += self.x_change
-        self.ybp += self.ybp
+        self.ybp += self.y_change
 
 while running:
 
@@ -144,28 +149,38 @@ while running:
 
     screen.fill(GRASS)
 
+    for path in pathway:
+        pygame.draw.rect(screen, PATH, path)
+
     if len(tower_bullets) < len(tower_cords):
         tower_bullets.append(Bullet(False))
 
     for i in range(len(tower_bullets)):
         if tower_bullets[i].alive:
+            tower_bullets[i].bullet_move()
+            bullet_cord = pygame.Rect(tower_bullets[i].xbp, tower_bullets[i].ybp, w_ratio_center, h_ratio_center)
+            pygame.draw.rect(screen, BLACK, bullet_cord)
+            if tower_bullets[i].xbp < 0 or tower_bullets[i].xbp > WIDTH or tower_bullets[i].ybp < 0 or tower_bullets[i].ybp > HEIGHT:
+                tower_bullets[i].alive = False
+            for j in range(enemy_now):
+                enemy_cord = pygame.Rect(enemies_list[j].xp, enemies_list[j].yp, w_ratio * 0.6, h_ratio * 0.6)
+                if bullet_cord.colliderect(enemy_cord):
+                    enemies_list[j].health -= 1
+                    tower_bullets[i].alive = False
 
         else:
             if len(enemies_list) > 0:
-                tower_bullets[i].xbp = tower_cords[i][]
-                tower_bullets[i].ybp
+                tower_bullets[i].xbp = tower_cords[i][0] + w_ratio_center
+                tower_bullets[i].ybp = tower_cords[i][1] + h_ratio_center
                 tower_bullets[i].calculate_change(enemies_list[0].xp, enemies_list[0].yp)
                 tower_bullets[i].alive = True
-
-    for path in pathway:
-        pygame.draw.rect(screen, PATH, path)
 
     for tower in tower_cords:
         pygame.draw.rect(screen, (0, 0, 139), tower)
 
     if placement:
-        tower_x = w_ratio * (x // w_ratio) + w_ratio * 0.2
-        tower_y = h_ratio * (y // h_ratio) + h_ratio * 0.2
+        tower_x = w_ratio * (x // w_ratio) + w_ratio_center
+        tower_y = h_ratio * (y // h_ratio) + h_ratio_center
         tower_cord = [tower_x, tower_y, w_ratio * 0.6, h_ratio * 0.6]
         if screen.get_at((x, y)) == PATH or tower_cord in tower_cords:
             can_place = False
@@ -186,8 +201,9 @@ while running:
         spawned = 0
         spawn_timer = 0
         dead = 0
-        print(enemy_total)
+
     else:
+        dead = 0
         remove_list = []
         spawn_timer += 1
         if enemy_now < enemy_total and spawned != enemy_total:
@@ -195,25 +211,23 @@ while running:
                 enemy_now += 1
                 spawned += 1
 
-                print(enemy_now, enemy_total, spawned, dead)
-
-        enemy_now -= dead
-        dead = 0
-
         for i in range(enemy_now):
 
             enemies_list[i].change_pos()
             enemies_list[i].change_col()
-            pygame.draw.rect(screen, enemies_list[i].colour, [enemies_list[i].xp, enemies_list[i].yp, w_ratio * 0.6, h_ratio * 0.6])
+            enemy_cord = pygame.Rect(enemies_list[i].xp, enemies_list[i].yp, w_ratio * 0.6, h_ratio * 0.6)
+            pygame.draw.rect(screen, enemies_list[i].colour, enemy_cord)
 
             if enemies_list[i].health == 0 or enemies_list[i].yp > HEIGHT:
                 remove_list.append(i)
                 dead += 1
 
-        remove_list[::-1]
+        remove_list.reverse()
 
         for num in remove_list:
             enemies_list.pop(num)
+
+        enemy_now -= dead
 
         if len(enemies_list) == 0:
             wave_end = True
