@@ -40,6 +40,7 @@ pathway.append(pygame.Rect(w_ratio * 13, h_ratio, w_ratio, h_ratio * 13))
 placement = False
 can_place = False
 tower_cords = []
+tower_bullets = []
 wave_enemies = [[[5, 1]], [[5, 2]], [[5, 3]], [[5, 4]], [[5, 5]]]
 enemies_list = []
 wave = 0
@@ -51,7 +52,7 @@ class Enemy:
         self.xp = w_ratio * -1
         self.yp = h_ratio * 7 + h_ratio * 0.2
         self.path_num = 1
-        self.speed = 30
+        self.speed = 5
         self.health = health
         self.colour = PATH
 
@@ -89,6 +90,35 @@ class Enemy:
     def change_col(self):
         self.colour = ENEMY_COLOURS[self.health]
 
+class Bullet:
+    def __init__(self, alive):
+        self.alive = alive
+        self.xbp = -20
+        self.ybp = -20
+        self.x_change = 0
+        self.y_change = 0
+        self.bullet_speed = 10
+
+    def calculate_change(self, enemy_x, enemy_y):
+        x_scale = enemy_x - self.xbp
+        y_scale = enemy_y - self.ybp
+        neg_x = 1
+        neg_y = 1
+        if x_scale < 0:
+            neg_x = -1
+        if y_scale < 0:
+            neg_y = -1
+        if abs(x_scale) <= abs(y_scale):
+            self.x_change = (x_scale / y_scale) * self.bullet_speed * neg_x
+            self.y_change = self.bullet_speed * neg_y
+        else:
+            self.x_change = self.bullet_speed * neg_x
+            self.y_change = (y_scale/x_scale) * self.bullet_speed * neg_y
+
+    def bullet_move(self):
+        self.xbp += self.x_change
+        self.ybp += self.ybp
+
 while running:
 
     x, y = pygame.mouse.get_pos()
@@ -113,6 +143,19 @@ while running:
                 placement = False
 
     screen.fill(GRASS)
+
+    if len(tower_bullets) < len(tower_cords):
+        tower_bullets.append(Bullet(False))
+
+    for i in range(len(tower_bullets)):
+        if tower_bullets[i].alive:
+
+        else:
+            if len(enemies_list) > 0:
+                tower_bullets[i].xbp = tower_cords[i][]
+                tower_bullets[i].ybp
+                tower_bullets[i].calculate_change(enemies_list[0].xp, enemies_list[0].yp)
+                tower_bullets[i].alive = True
 
     for path in pathway:
         pygame.draw.rect(screen, PATH, path)
